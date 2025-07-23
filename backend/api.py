@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-model = "gemma3:12b"
+model = "gemma3:4b"
 
 class ExtractionRequest(BaseModel):
     title: str
@@ -16,6 +16,12 @@ class ExtractionRequest(BaseModel):
     description: str
     importDateUTC: str
     locations: str
+
+
+# For summarization endpoint
+class SummaryRequest(BaseModel):
+    time_key: str
+    events: list[dict]
 
 
 # Initialize FastAPI and middleware BEFORE any route decorators
@@ -230,3 +236,29 @@ Description: {article.description}
         reason = f"Failed to parse response: {content}"
 
     return {"relevant": relevant, "reason": reason}
+
+
+# Summarization endpoint
+@app.post("/summarize")
+def summarize_events(req: SummaryRequest):
+    prompt = f"Summarize the following outbreak events for this time window:\n\nTime and Country: {req.time_key}\n"
+    for e in req.events:
+        prompt += f"- {e['Disease']} | {e['Cases']} case(s) | {e['Location']} | {e['Country']}\n"
+    prompt += "\nProvide a clear and concise summary of the events above. Indicate if there is an outbreak occurring, in which area(s), and how severe it is based on the number of cases. Do not include follow-up suggestions or questions."
+
+    response = requests.post(
+        "http://localhost:11434/api/chat",
+        headers={"Content-Type": "application/json"},
+        json={
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": False
+        }
+    )
+
+    try:
+        summary = response.json()["message"]["content"].strip()
+    except Exception as e:
+        summary = f"Error during LLM response: {e}"
+
+    return {"summary": summary}
