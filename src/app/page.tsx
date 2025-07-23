@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { BiCheckCircle, BiSearch, BiBarChartAlt2 } from "react-icons/bi";
 
 export default function Home() {
@@ -12,7 +11,7 @@ export default function Home() {
         >
           <BiCheckCircle className="text-4xl text-blue-500 mb-4" />
           <h2 className="text-xl font-medium mt-0">Relevance Classifier</h2>
-          <p className="text-sm mt-2 text-gray-600">Drag a news article and check if it's outbreak-related.</p>
+          <p className="text-sm mt-2 text-gray-600">Drag a news article and check if it&apos;s outbreak-related.</p>
         </a>
 
         <a
